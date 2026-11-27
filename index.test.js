@@ -18,6 +18,21 @@ test('the single html file references no external resource', () => {
     assert.ok(page.includes('abandon'), 'the english wordlist must be embedded');
 });
 
+test('the page explains the mouse buttons before the category buttons', () => {
+    const hintPosition = page.indexOf('id="categories-hint"');
+    const categoriesPosition = page.indexOf('id="word-categories"');
+    assert.ok(hintPosition > 0, 'the hint must be in the page');
+    assert.ok(hintPosition < categoriesPosition, 'the hint must come before the categories');
+    assert.ok(
+        page.includes('A left click on a category button adds the words of that category to the list.'),
+        'the hint must say what a left click does'
+    );
+    assert.ok(
+        page.includes('A right click removes them from the list.'),
+        'the hint must say what a right click does'
+    );
+});
+
 test('the embedded script fills the page with 1024 phrases, one per line', async () => {
     const { elements } = await runPage('1024');
 
