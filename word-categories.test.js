@@ -56,5 +56,5 @@ test('the tree covers enough words to be useful', () => {
     const uncoveredWords = wordlist.filter((word) => !coveredWords.has(word));
     console.log('covered ' + coveredWords.size + ' of ' + wordlist.length + ' words, uncovered ' + uncoveredWords.length);
     console.log('uncovered: ' + uncoveredWords.join(' '));
-    assert.ok(coveredWords.size >= 1500, 'coverage is only ' + coveredWords.size);
+    assert.deepEqual(uncoveredWords, [], 'every word of the BIP39 list must be in at least one subcategory');
 });
