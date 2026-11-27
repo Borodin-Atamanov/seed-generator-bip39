@@ -38,6 +38,13 @@ a button adds the missing words of that category, and clicking a button whose wo
 present removes them. A group button covers every word of the group, so it switches all its
 subcategories at once. The state is recomputed after any edit of the words field.
 
+A category that is only partly in the list also draws a thin line along the bottom edge of its
+button, filled in proportion to the share of the category that is present, so that one word out
+of three hundred looks clearly different from two hundred ninety nine out of three hundred. The
+line sits inside the button and does not change its height. Hovering a button shows the exact
+numbers in the form X/Y, where X is the number of its words present in the list and Y is the
+total number of its words.
+
 After every change made with a button, the words field is rebuilt in its initial order: shortest
 words first, and among words of the same length by the alphabetical order of their reversed
 spelling. This keeps the field readable and identical to the order shown on load.

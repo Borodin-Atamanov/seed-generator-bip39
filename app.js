@@ -6,6 +6,7 @@ import { wordCategoryTree } from './word-categories.js';
 const MAXIMUM_PHRASE_COUNT = 100000;
 const PHRASES_PER_TICK = 16;
 const MINIMUM_RENDER_INTERVAL_MILLISECONDS = 500;
+const MINIMUM_VISIBLE_FILL_PERCENT = 6;
 
 const phraseListField = document.getElementById('phrase-list');
 const phraseCountField = document.getElementById('phrase-count');
@@ -137,7 +138,11 @@ function updateCategoryButtonStates() {
             : (presentCount === category.indices.size ? 'all' : 'partial');
         button.className = baseClassName + ' state-' + state;
         button.dataset.state = state;
-        button.title = category.name + ': ' + presentCount + ' of ' + category.indices.size + ' words in the list';
+        button.title = presentCount + '/' + category.indices.size;
+        const fillPercent = presentCount === 0
+            ? 0
+            : Math.max(MINIMUM_VISIBLE_FILL_PERCENT, Math.round(100 * presentCount / category.indices.size));
+        button.style.setProperty('--fill', fillPercent + '%');
     }
 }
 

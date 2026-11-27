@@ -221,11 +221,12 @@ test('category buttons start in the all state and cover every length and every s
             .join(', ')
     );
     assert.ok(buttons.every((button) => button.dataset.state === 'all'));
-    assert.equal(buttons[0].title, 'words of any length: 2048 of 2048 words in the list');
-    assert.equal(buttons[1].title, '3-letter words: 103 of 103 words in the list');
+    assert.equal(buttons[0].title, '2048/2048');
+    assert.equal(buttons[1].title, '103/103');
     const animalsGroup = wordCategoryTree.find((group) => group.id === 'animals');
     const animalWordCount = new Set(animalsGroup.children.flatMap((child) => child.words)).size;
-    assert.equal(buttons[7].title, 'Animals: ' + animalWordCount + ' of ' + animalWordCount + ' words in the list');
+    assert.equal(buttons[7].title, animalWordCount + '/' + animalWordCount);
+    assert.ok(buttons.every((button) => button.title.includes('/')), 'every tooltip must be a fraction');
 });
 
 test('a semantic subcategory adds exactly its own words and removes them again', async () => {
@@ -325,6 +326,11 @@ test('a partly present category shows the partial state and one click completes 
     assert.equal(fiveLetterButton.dataset.state, 'partial');
     assert.equal(fourLetterButton.dataset.state, 'none');
 
+    const threeLetterFill = Number.parseInt(threeLetterButton.style.values['--fill'], 10);
+    assert.ok(threeLetterFill >= 2 && threeLetterFill <= 99, 'partial fill must be visible and below full: ' + threeLetterFill);
+    assert.equal(fourLetterButton.style.values['--fill'], '0%');
+    assert.match(threeLetterButton.title, /^1\/103$/);
+
     threeLetterButton.handlers.click();
     assert.equal(threeLetterButton.dataset.state, 'all');
     const words = elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0);
@@ -403,6 +409,12 @@ function createElementStub(value) {
         scrollHeight: 0,
         children: [],
         dataset: {},
+        style: {
+            values: {},
+            setProperty(name, value) {
+                this.values[name] = value;
+            },
+        },
         handlers: {},
         classList: { toggle() {} },
         select() {},
