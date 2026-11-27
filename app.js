@@ -1,6 +1,7 @@
 import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { generateSplitPhrase } from './generator.js';
 import { insertPhraseInOrder } from './sorted-phrases.js';
+import { wordCategoryTree } from './word-categories.js';
 
 const MAXIMUM_PHRASE_COUNT = 100000;
 const PHRASES_PER_TICK = 16;
@@ -21,8 +22,46 @@ let generationRunId = 0;
 let generationIsPaused = false;
 let pausedMilliseconds = 0;
 
-const wordCategories = [buildWordLengthCategoryGroup(wordlist)];
+const wordIndexByWord = new Map(wordlist.map((word, index) => [word, index]));
+
+const wordCategories = [
+    buildWordLengthCategoryGroup(wordlist),
+    ...buildSemanticCategoryGroups(wordCategoryTree),
+];
 const categoryButtons = [];
+
+function buildSemanticCategoryGroups(tree) {
+    return tree.map((group) => {
+        const children = group.children.map((child) => {
+            const indices = new Set();
+            for (const word of child.words) {
+                const index = wordIndexByWord.get(word);
+                if (index !== undefined) {
+                    indices.add(index);
+                }
+            }
+            return {
+                id: group.id + '/' + child.id,
+                title: child.title,
+                name: child.title,
+                indices,
+            };
+        });
+        const allIndices = new Set();
+        for (const child of children) {
+            for (const index of child.indices) {
+                allIndices.add(index);
+            }
+        }
+        return {
+            id: group.id,
+            title: group.title,
+            name: group.title,
+            indices: allIndices,
+            children,
+        };
+    });
+}
 
 function buildWordLengthCategoryGroup(words) {
     const indicesByLength = new Map();
@@ -135,7 +174,7 @@ function addWordsToField(indicesToAdd) {
 function removeWordsFromField(indicesToRemove) {
     const remainingWords = wordsField.value
         .split(/\s+/)
-        .filter((word) => word.length > 0 && !indicesToRemove.has(wordlist.indexOf(word)));
+        .filter((word) => word.length > 0 && !indicesToRemove.has(wordIndexByWord.get(word)));
     wordsField.value = remainingWords.join(' ');
 }
 
@@ -226,8 +265,8 @@ function readRequestedPhraseCount() {
 function readAllowedIndices() {
     const indices = new Set();
     for (const word of wordsField.value.split(/\s+/)) {
-        const index = wordlist.indexOf(word);
-        if (index !== -1) {
+        const index = wordIndexByWord.get(word);
+        if (index !== undefined) {
             indices.add(index);
         }
     }
@@ -266,8 +305,8 @@ function updateWordsSummary() {
         if (word.length === 0) {
             continue;
         }
-        const index = wordlist.indexOf(word);
-        if (index === -1) {
+        const index = wordIndexByWord.get(word);
+        if (index === undefined) {
             unknownWordCount += 1;
         } else {
             allowedIndices.add(index);

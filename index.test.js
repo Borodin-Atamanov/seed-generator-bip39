@@ -4,6 +4,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { validateMnemonic } from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
+import { wordCategoryTree } from './word-categories.js';
 
 const page = await readFile(new URL('./index.html', import.meta.url), 'utf8');
 
@@ -203,15 +204,78 @@ function collectCategoryButtons(container) {
     return found;
 }
 
-test('category buttons for word length start in the all state and cover every length', async () => {
+test('category buttons start in the all state and cover every length and every semantic group', async () => {
     const { elements } = await runPage('1', '', false);
     const buttons = collectCategoryButtons(elements.get('word-categories'));
 
-    assert.deepEqual(buttons.map((button) => button.textContent), ['Word length', '3', '4', '5', '6', '7', '8']);
+    const semanticButtonCount = wordCategoryTree.reduce(
+        (total, group) => total + 1 + group.children.length,
+        0
+    );
+    assert.equal(buttons.length, 7 + semanticButtonCount);
+    assert.deepEqual(buttons.slice(0, 7).map((button) => button.textContent), ['Word length', '3', '4', '5', '6', '7', '8']);
+    assert.equal(
+        buttons.slice(7).map((button) => button.textContent).join(', '),
+        wordCategoryTree
+            .flatMap((group) => [group.title, ...group.children.map((child) => child.title)])
+            .join(', ')
+    );
     assert.ok(buttons.every((button) => button.dataset.state === 'all'));
     assert.equal(buttons[0].title, 'words of any length: 2048 of 2048 words in the list');
     assert.equal(buttons[1].title, '3-letter words: 103 of 103 words in the list');
-    assert.equal(buttons[2].title, '4-letter words: 442 of 442 words in the list');
+    const animalsGroup = wordCategoryTree.find((group) => group.id === 'animals');
+    const animalWordCount = new Set(animalsGroup.children.flatMap((child) => child.words)).size;
+    assert.equal(buttons[7].title, 'Animals: ' + animalWordCount + ' of ' + animalWordCount + ' words in the list');
+});
+
+test('a semantic subcategory adds exactly its own words and removes them again', async () => {
+    const { elements } = await runPage('1', '', false);
+    const buttons = collectCategoryButtons(elements.get('word-categories'));
+    const lengthGroupButton = buttons.find((button) => button.dataset.categoryId === 'word-length');
+    const birdsButton = buttons.find((button) => button.dataset.categoryId === 'animals/birds');
+    const birdsWords = wordCategoryTree
+        .find((group) => group.id === 'animals')
+        .children.find((child) => child.id === 'birds')
+        .words;
+
+    assert.ok(birdsButton !== undefined, 'the birds button must exist');
+    lengthGroupButton.handlers.click();
+    assert.equal(elements.get('words-field').value, '', 'the field must start empty for this test');
+
+    birdsButton.handlers.click();
+    const wordsAfterClick = elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0);
+    assert.deepEqual([...wordsAfterClick].sort(), [...birdsWords].sort());
+    assert.equal(birdsButton.dataset.state, 'all');
+
+    birdsButton.handlers.click();
+    assert.equal(elements.get('words-field').value, '');
+    assert.equal(birdsButton.dataset.state, 'none');
+});
+
+test('a semantic group button adds the union of its subcategories', async () => {
+    const { elements } = await runPage('1', '', false);
+    const buttons = collectCategoryButtons(elements.get('word-categories'));
+    const animalsButton = buttons.find((button) => button.dataset.categoryId === 'animals');
+    const animalsGroup = wordCategoryTree.find((group) => group.id === 'animals');
+    const groupWords = new Set();
+    for (const child of animalsGroup.children) {
+        for (const word of child.words) {
+            groupWords.add(word);
+        }
+    }
+
+    assert.ok(animalsButton !== undefined, 'the animals button must exist');
+    buttons.find((button) => button.dataset.categoryId === 'word-length').handlers.click();
+    assert.equal(elements.get('words-field').value, '', 'the field must start empty for this test');
+
+    animalsButton.handlers.click();
+    const wordsAfterClick = elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0);
+    assert.deepEqual([...wordsAfterClick].sort(), [...groupWords].sort());
+    assert.equal(animalsButton.dataset.state, 'all');
+    for (const child of animalsGroup.children) {
+        const childButton = buttons.find((button) => button.dataset.categoryId === 'animals/' + child.id);
+        assert.equal(childButton.dataset.state, 'all', child.id);
+    }
 });
 
 test('the group button turns every length on and off at once', async () => {

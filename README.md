@@ -22,13 +22,21 @@ first eleven words of each half from the set and derives the twelfth word from t
 rules, retrying until that word belongs to the set.
 
 Below the words field there are category buttons, grouped in two levels: a group button and the
-buttons inside it. For now the only group is word length, its button is named "Word length" and
-the buttons inside it are the numbers 3 to 8, the lengths that exist in the English BIP39 list.
+buttons inside it. There are 23 groups and 162 buttons in total. The first group is word length,
+its button is named "Word length" and the buttons inside it are the numbers 3 to 8, the lengths
+that exist in the English BIP39 list. The other 22 groups are the meaning categories of the
+BIP39 vocabulary, taken from `word-categories.js`: Animals, Nature and Environment, Food and
+Drinks, Human Body and Health, People and Relationships, Home, Clothing, City, Transport,
+Education, Work and Business, Science and Technology, Actions and Processes, Time and Space,
+Size and Shape, Sounds and Music, Qualities, Law and Politics, Sports and Games, Arts and
+Culture, Religion, Abstract Ideas. Every word of the BIP39 list belongs to at least one
+subcategory, and a word with several meanings belongs to several.
+
 Each button, the group one included, shows one of three states: the list has no word of that
 category (light), it has some but not all of them (grey), or it has all of them (dark). Clicking
 a button adds the missing words of that category, and clicking a button whose words are all
-present removes them. The group button covers every word of the group, so it switches all
-lengths on or off at once. The state is recomputed after any edit of the words field.
+present removes them. A group button covers every word of the group, so it switches all its
+subcategories at once. The state is recomputed after any edit of the words field.
 
 After every change made with a button, the words field is rebuilt in its initial order: shortest
 words first, and among words of the same length by the alphabetical order of their reversed
