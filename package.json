@@ -1,0 +1,20 @@
+{
+  "name": "bip39-split-seed",
+  "version": "1.0.0",
+  "description": "Generates a 24-word BIP39 phrase whose two 12-word halves are each a valid BIP39 phrase",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node build.mjs && node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@scure/bip39": "2.4.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
+  }
+}

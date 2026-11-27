@@ -1,0 +1,88 @@
+import { build } from 'esbuild';
+import { writeFile } from 'node:fs/promises';
+
+const BUNDLE_PLACEHOLDER = '__EMBEDDED_BUNDLE__';
+
+const pageTemplate = [
+    '<!doctype html>',
+    '<html lang="en">',
+    '<head>',
+    '<meta charset="utf-8">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1">',
+    '<title>Phrases of 24 words with valid halves</title>',
+    '<!-- Embedded libraries: @scure/bip39 2.4.0, MIT, Copyright (c) 2022 Patricio Palladino, Paul Miller;',
+    '     @noble/hashes 2.4.0, MIT, Copyright (c) 2022 Paul Miller (https://paulmillr.com). -->',
+    '<style>',
+    'body { margin: 0; padding: 32px 16px; background: #f5f6f8; color: #1d2129; }',
+    'main { margin: 0; padding: 24px; background: #ffffff; border-radius: 8px; }',
+    'h1 { font-size: 22px; margin: 0 0 12px; line-height: 1.35; }',
+    'h2 { font-size: 15px; margin: 20px 0 6px; font-weight: 600; }',
+    '.note { font-size: 14px; line-height: 1.5; margin: 0 0 8px; }',
+    '.warning { font-size: 14px; line-height: 1.5; margin: 0 0 20px; color: #a4231d; }',
+    'button { font: inherit; padding: 8px 16px; border: 1px solid #1d2129; border-radius: 6px; background: #1d2129; color: #ffffff; cursor: pointer; }',
+    'button.secondary { background: #ffffff; color: #1d2129; }',
+    'button:disabled { opacity: 0.5; cursor: default; }',
+    'textarea { display: block; width: 100%; box-sizing: border-box; padding: 10px 12px; font-family: "DejaVu Sans Mono", monospace; font-size: 13px; line-height: 1.6; border: 1px solid #c9ced6; border-radius: 6px; resize: vertical; background: #fbfcfd; white-space: pre; overflow-x: auto; }',
+    'textarea:focus { outline: 2px solid #1d2129; outline-offset: 1px; }',
+    '#phrase-list { height: 70vh; min-height: 320px; }',
+    '#words-field { height: 25vh; min-height: 180px; white-space: pre-wrap; overflow-x: hidden; }',
+    '#words-summary { font-size: 14px; margin: 6px 0 12px; color: #4a5261; }',
+    '#words-summary.failure { color: #a4231d; }',
+    '#word-categories { display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 14px; }',
+    '.category-group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }',
+    '.category-group-button { font-weight: 600; }',
+    '.category-buttons { display: flex; flex-wrap: wrap; gap: 6px; }',
+    '.category-button { min-width: 42px; padding: 5px 9px; border: 1px solid #c9ced6; border-radius: 6px; background: #ffffff; color: #1d2129; cursor: pointer; }',
+    '.category-button.state-partial { background: #e6e9ee; border-color: #98a1ae; }',
+    '.category-button.state-all { background: #1d2129; border-color: #1d2129; color: #ffffff; }',
+    '.controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 4px; }',
+    '#phrase-count { font: inherit; width: 120px; padding: 7px 10px; border: 1px solid #c9ced6; border-radius: 6px; background: #ffffff; }',
+    '#phrase-count:focus { outline: 2px solid #1d2129; outline-offset: 1px; }',
+    '#counter { font-size: 14px; margin: 0; color: #4a5261; }',
+    '.list-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 12px 0 6px; }',
+    '#status { font-size: 14px; margin: 0; min-height: 20px; color: #1a7f37; }',
+    '#status.failure { color: #a4231d; }',
+    '</style>',
+    '</head>',
+    '<body>',
+    '<main>',
+    '<h1>Phrases of 24 words where each 12-word half is also a valid phrase</h1>',
+    '<p class="note">Randomness comes from crypto.getRandomValues, the cryptographic generator built into the browser. This file makes no network requests and works offline.</p>',
+    '<p class="warning">Every phrase on this page and every one of its halves gives access to a wallet. Do not show these lines to anyone and do not keep them in plain sight.</p>',
+    '<div class="controls">',
+    '<label for="phrase-count">How many phrases</label>',
+    '<input id="phrase-count" type="number" min="1" max="100000" step="1" value="1024">',
+    '<button id="generate" type="button">Generate</button>',
+    '<p id="status"></p>',
+    '</div>',
+    '<h2>Words used to build phrases</h2>',
+    '<textarea id="words-field" rows="14" spellcheck="false"></textarea>',
+    '<p id="words-summary"></p>',
+    '<div id="word-categories"></div>',
+    '<div class="list-actions">',
+    '<button id="copy-all" type="button" class="secondary">Copy</button>',
+    '<button id="pause" type="button" class="secondary" disabled>Pause</button>',
+    '<p id="counter"></p>',
+    '</div>',
+    '<textarea id="phrase-list" rows="28" readonly wrap="off" spellcheck="false"></textarea>',
+    '</main>',
+    '<script>' + BUNDLE_PLACEHOLDER + '</script>',
+    '</body>',
+    '</html>',
+    '',
+].join('\n');
+
+const bundleResult = await build({
+    entryPoints: ['app.js'],
+    bundle: true,
+    minify: true,
+    format: 'iife',
+    target: ['chrome100'],
+    write: false,
+});
+
+const bundleSource = bundleResult.outputFiles[0].text.replaceAll('</script', '<\\/script');
+const page = pageTemplate.replace(BUNDLE_PLACEHOLDER, () => bundleSource);
+
+await writeFile('index.html', page, 'utf8');
+console.log('index.html built, size ' + page.length + ' bytes');
