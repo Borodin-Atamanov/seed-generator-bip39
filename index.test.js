@@ -229,10 +229,9 @@ test('category buttons start in the all state and cover every length and every s
     assert.ok(buttons.every((button) => button.title.includes('/')), 'every tooltip must be a fraction');
 });
 
-test('a semantic subcategory adds exactly its own words and removes them again', async () => {
+test('a left click on a subcategory removes exactly its words, a right click adds them back', async () => {
     const { elements } = await runPage('1', '', false);
     const buttons = collectCategoryButtons(elements.get('word-categories'));
-    const lengthGroupButton = buttons.find((button) => button.dataset.categoryId === 'word-length');
     const birdsButton = buttons.find((button) => button.dataset.categoryId === 'animals/birds');
     const birdsWords = wordCategoryTree
         .find((group) => group.id === 'animals')
@@ -240,20 +239,25 @@ test('a semantic subcategory adds exactly its own words and removes them again',
         .words;
 
     assert.ok(birdsButton !== undefined, 'the birds button must exist');
-    lengthGroupButton.handlers.click();
-    assert.equal(elements.get('words-field').value, '', 'the field must start empty for this test');
-
-    birdsButton.handlers.click();
-    const wordsAfterClick = elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0);
-    assert.deepEqual([...wordsAfterClick].sort(), [...birdsWords].sort());
     assert.equal(birdsButton.dataset.state, 'all');
 
     birdsButton.handlers.click();
-    assert.equal(elements.get('words-field').value, '');
+    const wordsAfterRemoval = elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0);
+    assert.equal(wordsAfterRemoval.length, 2048 - birdsWords.length);
+    for (const word of birdsWords) {
+        assert.ok(wordsAfterRemoval.includes(word) === false, 'the removed word must be gone: ' + word);
+    }
     assert.equal(birdsButton.dataset.state, 'none');
+    assert.equal(birdsButton.title, '0/' + birdsWords.length);
+
+    rightClick(birdsButton);
+    const wordsAfterRestore = elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0);
+    assert.equal(wordsAfterRestore.length, 2048);
+    assert.equal(birdsButton.dataset.state, 'all');
+    assertOrderMatchesInitialRule(wordsAfterRestore);
 });
 
-test('a semantic group button adds the union of its subcategories', async () => {
+test('a left click on a group removes the union of its subcategories, a right click adds it back', async () => {
     const { elements } = await runPage('1', '', false);
     const buttons = collectCategoryButtons(elements.get('word-categories'));
     const animalsButton = buttons.find((button) => button.dataset.categoryId === 'animals');
@@ -266,12 +270,16 @@ test('a semantic group button adds the union of its subcategories', async () => 
     }
 
     assert.ok(animalsButton !== undefined, 'the animals button must exist');
-    buttons.find((button) => button.dataset.categoryId === 'word-length').handlers.click();
-    assert.equal(elements.get('words-field').value, '', 'the field must start empty for this test');
-
     animalsButton.handlers.click();
-    const wordsAfterClick = elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0);
-    assert.deepEqual([...wordsAfterClick].sort(), [...groupWords].sort());
+    const wordsAfterRemoval = elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0);
+    assert.equal(wordsAfterRemoval.length, 2048 - groupWords.size);
+    for (const word of groupWords) {
+        assert.ok(wordsAfterRemoval.includes(word) === false, 'the removed word must be gone: ' + word);
+    }
+    assert.equal(animalsButton.dataset.state, 'none');
+
+    rightClick(animalsButton);
+    assert.equal(elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0).length, 2048);
     assert.equal(animalsButton.dataset.state, 'all');
     for (const child of animalsGroup.children) {
         const childButton = buttons.find((button) => button.dataset.categoryId === 'animals/' + child.id);
@@ -279,7 +287,7 @@ test('a semantic group button adds the union of its subcategories', async () => 
     }
 });
 
-test('the group button turns every length on and off at once', async () => {
+test('the word length group removes every word on a left click and restores them on a right click', async () => {
     const { elements } = await runPage('1', '', false);
     const buttons = collectCategoryButtons(elements.get('word-categories'));
     const groupButton = buttons[0];
@@ -289,13 +297,14 @@ test('the group button turns every length on and off at once', async () => {
     assert.ok(buttons.every((button) => button.dataset.state === 'none'));
     assert.match(elements.get('words-summary').textContent, /^Words in the set: 0,/);
 
-    groupButton.handlers.click();
+    rightClick(groupButton);
     assert.ok(buttons.every((button) => button.dataset.state === 'all'));
-    assert.equal(elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0).length, 2048);
-    assertOrderMatchesInitialRule(elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0));
+    const restoredWords = elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0);
+    assert.equal(restoredWords.length, 2048);
+    assertOrderMatchesInitialRule(restoredWords);
 });
 
-test('a category click removes its words, and a second click brings them back', async () => {
+test('a left click on a length removes that length, a right click brings it back', async () => {
     const { elements } = await runPage('1', '', false);
     const buttons = collectCategoryButtons(elements.get('word-categories'));
     const threeLetterButton = buttons.find((button) => button.textContent === '3');
@@ -308,14 +317,14 @@ test('a category click removes its words, and a second click brings them back', 
     assert.ok(wordsAfterRemoval.every((word) => word.length !== 3));
     assert.match(elements.get('words-summary').textContent, new RegExp('^Words in the set: ' + (2048 - threeLetterWordCount) + ','));
 
-    threeLetterButton.handlers.click();
+    rightClick(threeLetterButton);
     assert.equal(threeLetterButton.dataset.state, 'all');
     const wordsAfterRestore = elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0);
     assert.equal(wordsAfterRestore.length, 2048);
     assert.equal(new Set(wordsAfterRestore).size, 2048);
 });
 
-test('a partly present category shows the partial state and one click completes it', async () => {
+test('a partly present category shows the partial state, a click removes its words, a right click completes it', async () => {
     const { elements } = await runPage('1', 'act actor', false);
     const buttons = collectCategoryButtons(elements.get('word-categories'));
     const threeLetterButton = buttons.find((button) => button.textContent === '3');
@@ -332,13 +341,20 @@ test('a partly present category shows the partial state and one click completes 
     assert.match(threeLetterButton.title, /^1\/103$/);
 
     threeLetterButton.handlers.click();
+    assert.equal(threeLetterButton.dataset.state, 'none');
+    assert.equal(elements.get('words-field').value, 'actor');
+
+    rightClick(threeLetterButton);
     assert.equal(threeLetterButton.dataset.state, 'all');
     const words = elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0);
     assert.equal(words.filter((word) => word.length === 3).length, 103);
     assert.ok(words.includes('actor'));
-    assert.ok(words.includes('act'));
     assertOrderMatchesInitialRule(words);
 });
+
+function rightClick(button) {
+    button.handlers.contextmenu({ preventDefault() {} });
+}
 
 function assertOrderMatchesInitialRule(words) {
     for (let index = 1; index < words.length; index++) {

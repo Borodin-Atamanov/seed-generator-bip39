@@ -118,7 +118,11 @@ function createCategoryButton(category, extraClassName = '') {
     button.title = category.name;
     button.dataset.categoryId = category.id;
     button.dataset.state = 'all';
-    button.addEventListener('click', () => toggleCategoryWords(category));
+    button.addEventListener('click', () => removeCategoryWords(category));
+    button.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+        addCategoryWords(category);
+    });
     categoryButtons.push({ button, category, baseClassName: button.className });
     return button;
 }
@@ -145,14 +149,24 @@ function updateCategoryButtonStates() {
     }
 }
 
-function toggleCategoryWords(category) {
+function removeCategoryWords(category) {
+    const allowedIndices = readAllowedIndices();
+    const hasPresentWord = [...category.indices].some((index) => allowedIndices.has(index));
+    if (hasPresentWord === false) {
+        return;
+    }
+    removeWordsFromField(category.indices);
+    normalizeWordsFieldOrder();
+    updateWordsSummary();
+}
+
+function addCategoryWords(category) {
     const allowedIndices = readAllowedIndices();
     const missingIndices = [...category.indices].filter((index) => !allowedIndices.has(index));
-    if (missingIndices.length > 0) {
-        addWordsToField(missingIndices);
-    } else {
-        removeWordsFromField(category.indices);
+    if (missingIndices.length === 0) {
+        return;
     }
+    addWordsToField(missingIndices);
     normalizeWordsFieldOrder();
     updateWordsSummary();
 }

@@ -33,10 +33,11 @@ Culture, Religion, Abstract Ideas. Every word of the BIP39 list belongs to at le
 subcategory, and a word with several meanings belongs to several.
 
 Each button, the group one included, shows one of three states: the list has no word of that
-category (light), it has some but not all of them (grey), or it has all of them (dark). Clicking
-a button adds the missing words of that category, and clicking a button whose words are all
-present removes them. A group button covers every word of the group, so it switches all its
-subcategories at once. The state is recomputed after any edit of the words field.
+category (light), it has some but not all of them (grey), or it has all of them (dark). A left
+click removes every word of that category from the list. A right click adds the missing words of
+that category, and the browser context menu does not open on buttons. A group button covers every
+word of the group, so it removes or adds all of its subcategories at once. The state is
+recomputed after any edit of the words field.
 
 A category that is only partly in the list also draws a thin line along the bottom edge of its
 button, filled in proportion to the share of the category that is present, so that one word out
