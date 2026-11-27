@@ -24,7 +24,7 @@ rules, retrying until that word belongs to the set.
 Below the words field there are category buttons, grouped in two levels: a group button and the
 buttons inside it. Every group starts a new row with its own button, and the buttons of its
 subcategories follow it on the same row, wrapping only when the row runs out of width. There are
-23 groups and 162 buttons in total. The first group is word length,
+25 groups and 212 buttons in total. The first group is word length,
 its button is named "Word length" and the buttons inside it are the numbers 3 to 8, the lengths
 that exist in the English BIP39 list. The other 22 groups are the meaning categories of the
 BIP39 vocabulary, taken from `word-categories.js`: Animals, Nature and Environment, Food and
@@ -33,6 +33,13 @@ Education, Work and Business, Science and Technology, Actions and Processes, Tim
 Size and Shape, Sounds and Music, Qualities, Law and Politics, Sports and Games, Arts and
 Culture, Religion, Abstract Ideas. Every word of the BIP39 list belongs to at least one
 subcategory, and a word with several meanings belongs to several.
+
+The last two groups classify words by their first and by their last letter, and they close the
+list of groups. A button named `a*` holds the words that start with `a`, a button named `*a`
+holds the words that end with `a`. Only the letters that really occur in the BIP39 list get a
+button, and the buttons of a group follow the alphabetical order of the letters: the first
+letter group has 25 buttons, because no word starts with `x`, and the last letter group has 23
+buttons, because no word ends with `j`, `q` or `v`.
 
 Each button, the group one included, shows one of three states: the list has no word of that
 category (light), it has some but not all of them (grey), or it has all of them (dark). A left

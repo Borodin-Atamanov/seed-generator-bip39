@@ -227,10 +227,13 @@ test('category buttons start in the all state and cover every length and every s
         (total, group) => total + 1 + group.children.length,
         0
     );
-    assert.equal(buttons.length, 7 + semanticButtonCount);
+    const letterButtonCount = 2 +
+        new Set(wordlist.map((word) => word[0])).size +
+        new Set(wordlist.map((word) => word[word.length - 1])).size;
+    assert.equal(buttons.length, 7 + semanticButtonCount + letterButtonCount);
     assert.deepEqual(buttons.slice(0, 7).map((button) => button.textContent), ['Word length', '3', '4', '5', '6', '7', '8']);
     assert.equal(
-        buttons.slice(7).map((button) => button.textContent).join(', '),
+        buttons.slice(7, 7 + semanticButtonCount).map((button) => button.textContent).join(', '),
         wordCategoryTree
             .flatMap((group) => [group.title, ...group.children.map((child) => child.title)])
             .join(', ')
@@ -385,11 +388,52 @@ function assertOrderMatchesInitialRule(words) {
     }
 }
 
+test('the last two groups list the letters that really start and end words, in alphabetical order', async () => {
+    const { elements } = await runPage('1', '', false);
+    const buttons = collectCategoryButtons(elements.get('word-categories'));
+    const groups = elements.get('word-categories').children;
+    const firstLetterGroup = groups[groups.length - 2];
+    const lastLetterGroup = groups[groups.length - 1];
+
+    assert.equal(firstLetterGroup.children[0].dataset.categoryId, 'starts-with');
+    assert.equal(firstLetterGroup.children[0].textContent, 'First letter');
+    assert.equal(lastLetterGroup.children[0].dataset.categoryId, 'ends-with');
+    assert.equal(lastLetterGroup.children[0].textContent, 'Last letter');
+
+    const realFirstLetters = [...new Set(wordlist.map((word) => word[0]))].sort();
+    const realLastLetters = [...new Set(wordlist.map((word) => word[word.length - 1]))].sort();
+    const shownFirstLetters = firstLetterGroup.children[1].children.map((button) => button.textContent.replace('*', ''));
+    const shownLastLetters = lastLetterGroup.children[1].children.map((button) => button.textContent.replace('*', ''));
+    assert.deepEqual(shownFirstLetters, realFirstLetters);
+    assert.deepEqual(shownLastLetters, realLastLetters);
+    assert.ok(firstLetterGroup.children[1].children.every((button) => button.textContent.endsWith('*')));
+    assert.ok(lastLetterGroup.children[1].children.every((button) => button.textContent.startsWith('*')));
+
+    const startingButton = buttons.find((button) => button.dataset.categoryId === 'starts-with/s');
+    const wordsStartingWithS = wordlist.filter((word) => word[0] === 's');
+    assert.equal(startingButton.title, wordsStartingWithS.length + '/' + wordsStartingWithS.length);
+    rightClick(startingButton);
+    const wordsAfterRemoval = elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0);
+    assert.equal(wordsAfterRemoval.length, 2048 - wordsStartingWithS.length);
+    assert.ok(wordsAfterRemoval.every((word) => word[0] !== 's'));
+
+    startingButton.handlers.click();
+    assert.equal(startingButton.dataset.state, 'all');
+    assert.equal(elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0).length, 2048);
+
+    const endingButton = buttons.find((button) => button.dataset.categoryId === 'ends-with/g');
+    const wordsEndingWithG = wordlist.filter((word) => word[word.length - 1] === 'g');
+    rightClick(endingButton);
+    const wordsAfterEndingRemoval = elements.get('words-field').value.split(/\s+/).filter((word) => word.length > 0);
+    assert.equal(wordsAfterEndingRemoval.length, 2048 - wordsEndingWithG.length);
+    assert.ok(wordsAfterEndingRemoval.every((word) => word[word.length - 1] !== 'g'));
+});
+
 test('every group holds its own button on one row and its subcategory buttons in a row below', async () => {
     const { elements } = await runPage('1', '', false);
     const groups = elements.get('word-categories').children;
 
-    assert.equal(groups.length, 1 + wordCategoryTree.length);
+    assert.equal(groups.length, 3 + wordCategoryTree.length);
     for (const group of groups) {
         assert.equal(group.className, 'category-group');
         assert.equal(group.children.length, 2, 'a group must hold its own button and one row of subcategory buttons');

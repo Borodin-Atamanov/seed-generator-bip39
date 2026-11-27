@@ -27,8 +27,50 @@ const wordIndexByWord = new Map(wordlist.map((word, index) => [word, index]));
 const wordCategories = [
     buildWordLengthCategoryGroup(wordlist),
     ...buildSemanticCategoryGroups(wordCategoryTree),
+    ...buildLetterCategoryGroups(wordlist),
 ];
 const categoryButtons = [];
+
+function buildLetterCategoryGroups(words) {
+    return [
+        buildLetterCategoryGroup(words, 'first'),
+        buildLetterCategoryGroup(words, 'last'),
+    ];
+}
+
+function buildLetterCategoryGroup(words, letterPosition) {
+    const indicesByLetter = new Map();
+    words.forEach((word, index) => {
+        const letter = letterPosition === 'first' ? word[0] : word[word.length - 1];
+        if (!indicesByLetter.has(letter)) {
+            indicesByLetter.set(letter, []);
+        }
+        indicesByLetter.get(letter).push(index);
+    });
+    const letters = [...indicesByLetter.keys()].sort();
+    const prefix = letterPosition === 'first' ? 'starts-with/' : 'ends-with/';
+    const children = letters.map((letter) => ({
+        id: prefix + letter,
+        title: letterPosition === 'first' ? letter + '*' : '*' + letter,
+        name: letterPosition === 'first'
+            ? 'words starting with the letter ' + letter
+            : 'words ending with the letter ' + letter,
+        indices: new Set(indicesByLetter.get(letter)),
+    }));
+    const allIndices = new Set();
+    for (const child of children) {
+        for (const index of child.indices) {
+            allIndices.add(index);
+        }
+    }
+    return {
+        id: letterPosition === 'first' ? 'starts-with' : 'ends-with',
+        title: letterPosition === 'first' ? 'First letter' : 'Last letter',
+        name: letterPosition === 'first' ? 'words by first letter' : 'words by last letter',
+        indices: allIndices,
+        children,
+    };
+}
 
 function buildSemanticCategoryGroups(tree) {
     return tree.map((group) => {
