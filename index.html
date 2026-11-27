@@ -32,8 +32,7 @@ textarea:focus { outline: 2px solid #1d2129; outline-offset: 1px; }
 .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 4px; }
 #phrase-count { font: inherit; width: 120px; padding: 7px 10px; border: 1px solid #c9ced6; border-radius: 6px; background: #ffffff; }
 #phrase-count:focus { outline: 2px solid #1d2129; outline-offset: 1px; }
-#counter { font-size: 14px; margin: 0; color: #4a5261; }
-.list-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 12px 0 6px; }
+#counter { font-size: 14px; margin: 12px 0 6px; color: #4a5261; }
 #status { font-size: 14px; margin: 0; min-height: 20px; color: #1a7f37; }
 #status.failure { color: #a4231d; }
 </style>
@@ -47,17 +46,15 @@ textarea:focus { outline: 2px solid #1d2129; outline-offset: 1px; }
 <label for="phrase-count">How many phrases</label>
 <input id="phrase-count" type="number" min="1" max="100000" step="1" value="1024">
 <button id="generate" type="button">Generate</button>
+<button id="copy-all" type="button" class="secondary">Copy</button>
+<button id="pause" type="button" class="secondary" disabled>Pause</button>
 <p id="status"></p>
 </div>
 <h2>Words used to build phrases</h2>
 <textarea id="words-field" rows="14" spellcheck="false"></textarea>
 <p id="words-summary"></p>
 <div id="word-categories"></div>
-<div class="list-actions">
-<button id="copy-all" type="button" class="secondary">Copy</button>
-<button id="pause" type="button" class="secondary" disabled>Pause</button>
 <p id="counter"></p>
-</div>
 <textarea id="phrase-list" rows="28" readonly wrap="off" spellcheck="false"></textarea>
 </main>
 <script>(()=>{var p=Object.freeze(`abandon
