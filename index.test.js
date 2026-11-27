@@ -429,6 +429,21 @@ test('the last two groups list the letters that really start and end words, in a
     assert.ok(wordsAfterEndingRemoval.every((word) => word[word.length - 1] !== 'g'));
 });
 
+test('every group carries a top scale showing its share of the whole word list', async () => {
+    const { elements } = await runPage('1', '', false);
+    const groups = elements.get('word-categories').children;
+
+    assert.equal(groups[0].style.values['--group-fill'], '100.00%');
+    const animalsGroup = wordCategoryTree.find((group) => group.id === 'animals');
+    const animalWordCount = new Set(animalsGroup.children.flatMap((child) => child.words)).size;
+    assert.equal(groups[1].style.values['--group-fill'], (100 * animalWordCount / 2048).toFixed(2) + '%');
+    for (const group of groups) {
+        assert.match(group.style.values['--group-fill'], /^\d+\.\d\d%$/, group.children[0].textContent);
+    }
+    assert.match(page, /\.category-group::after \{[^}]*right: 0;/, 'the fill must grow from the right edge');
+    assert.match(page, /\.category-group::before \{[^}]*left: 0;[^}]*right: 0;/, 'the track must span the row');
+});
+
 test('every group holds its own button on one row and its subcategory buttons in a row below', async () => {
     const { elements } = await runPage('1', '', false);
     const groups = elements.get('word-categories').children;

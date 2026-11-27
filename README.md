@@ -24,7 +24,11 @@ rules, retrying until that word belongs to the set.
 Below the words field there are category buttons, grouped in two levels: a group button and the
 buttons inside it. Every group starts a new row with its own button, and the buttons of its
 subcategories follow it on the same row, wrapping only when the row runs out of width. There are
-25 groups and 212 buttons in total. The first group is word length,
+25 groups and 212 buttons in total. On top of every group there is a thin scale: its light track
+spans the whole row, and the dark part of the scale fills from the right edge and shows how big
+the group is relative to the whole BIP39 list, so a group that holds every word of the list gets
+a full scale and a group of a few dozen words gets a short one at the right end of the row. The
+first group is word length,
 its button is named "Word length" and the buttons inside it are the numbers 3 to 8, the lengths
 that exist in the English BIP39 list. The other 22 groups are the meaning categories of the
 BIP39 vocabulary, taken from `word-categories.js`: Animals, Nature and Environment, Food and

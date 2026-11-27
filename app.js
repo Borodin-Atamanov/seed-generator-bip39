@@ -140,6 +140,7 @@ function renderWordCategories() {
     for (const category of wordCategories) {
         const groupElement = document.createElement('div');
         groupElement.className = 'category-group';
+        groupElement.style.setProperty('--group-fill', describeGroupShare(category.indices.size) + '%');
         groupElement.appendChild(createCategoryButton(category, 'category-group-button'));
 
         const buttonRow = document.createElement('div');
@@ -150,6 +151,10 @@ function renderWordCategories() {
         groupElement.appendChild(buttonRow);
         categoriesContainer.appendChild(groupElement);
     }
+}
+
+function describeGroupShare(groupSize) {
+    return (100 * groupSize / wordlist.length).toFixed(2);
 }
 
 function createCategoryButton(category, extraClassName = '') {
