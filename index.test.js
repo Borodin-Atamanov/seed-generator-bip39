@@ -354,6 +354,19 @@ function assertOrderMatchesInitialRule(words) {
     }
 }
 
+test('every group holds its own button on one row and its subcategory buttons in a row below', async () => {
+    const { elements } = await runPage('1', '', false);
+    const groups = elements.get('word-categories').children;
+
+    assert.equal(groups.length, 1 + wordCategoryTree.length);
+    for (const group of groups) {
+        assert.equal(group.className, 'category-group');
+        assert.equal(group.children.length, 2, 'a group must hold its own button and one row of subcategory buttons');
+        assert.ok(group.children[0].className.includes('category-group-button'), 'the first child must be the group button');
+        assert.equal(group.children[1].className, 'category-buttons');
+    }
+});
+
 async function runPage(phraseCountValue, wordsValue = '', pressGenerate = true) {
     const scriptMatch = page.match(/<script>([\s\S]*)<\/script>/);
     assert.ok(scriptMatch, 'inline script must exist');
