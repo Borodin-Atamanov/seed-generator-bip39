@@ -41,9 +41,10 @@ subcategories at once. The state is recomputed after any edit of the words field
 A category that is only partly in the list also draws a thin line along the bottom edge of its
 button, filled in proportion to the share of the category that is present, so that one word out
 of three hundred looks clearly different from two hundred ninety nine out of three hundred. The
-line sits inside the button and does not change its height. Hovering a button shows the exact
-numbers in the form X/Y, where X is the number of its words present in the list and Y is the
-total number of its words.
+share is the exact percentage of the category; the line has a floor of two pixels so that a very
+small share is still drawn instead of vanishing. The line sits inside the button and does not
+change its height. Hovering a button shows the exact numbers in the form X/Y, where X is the
+number of its words present in the list and Y is the total number of its words.
 
 After every change made with a button, the words field is rebuilt in its initial order: shortest
 words first, and among words of the same length by the alphabetical order of their reversed

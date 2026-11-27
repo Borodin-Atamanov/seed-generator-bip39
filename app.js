@@ -6,7 +6,6 @@ import { wordCategoryTree } from './word-categories.js';
 const MAXIMUM_PHRASE_COUNT = 100000;
 const PHRASES_PER_TICK = 16;
 const MINIMUM_RENDER_INTERVAL_MILLISECONDS = 500;
-const MINIMUM_VISIBLE_FILL_PERCENT = 6;
 
 const phraseListField = document.getElementById('phrase-list');
 const phraseCountField = document.getElementById('phrase-count');
@@ -140,8 +139,8 @@ function updateCategoryButtonStates() {
         button.dataset.state = state;
         button.title = presentCount + '/' + category.indices.size;
         const fillPercent = presentCount === 0
-            ? 0
-            : Math.max(MINIMUM_VISIBLE_FILL_PERCENT, Math.round(100 * presentCount / category.indices.size));
+            ? '0'
+            : (100 * presentCount / category.indices.size).toFixed(2);
         button.style.setProperty('--fill', fillPercent + '%');
     }
 }

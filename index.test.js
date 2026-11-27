@@ -326,8 +326,8 @@ test('a partly present category shows the partial state and one click completes 
     assert.equal(fiveLetterButton.dataset.state, 'partial');
     assert.equal(fourLetterButton.dataset.state, 'none');
 
-    const threeLetterFill = Number.parseInt(threeLetterButton.style.values['--fill'], 10);
-    assert.ok(threeLetterFill >= 2 && threeLetterFill <= 99, 'partial fill must be visible and below full: ' + threeLetterFill);
+    const threeLetterFill = threeLetterButton.style.values['--fill'];
+    assert.equal(threeLetterFill, '0.97%', 'the fill must be the exact share of the category');
     assert.equal(fourLetterButton.style.values['--fill'], '0%');
     assert.match(threeLetterButton.title, /^1\/103$/);
 
