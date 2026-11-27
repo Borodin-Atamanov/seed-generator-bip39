@@ -30,6 +30,9 @@ const wordCategories = [
     ...buildLetterCategoryGroups(wordlist),
 ];
 const categoryButtons = [];
+const largestCategorySize = Math.max(
+    ...wordCategories.flatMap((group) => group.children.map((child) => child.indices.size))
+);
 
 function buildLetterCategoryGroups(words) {
     return [
@@ -140,7 +143,6 @@ function renderWordCategories() {
     for (const category of wordCategories) {
         const groupElement = document.createElement('div');
         groupElement.className = 'category-group';
-        groupElement.style.setProperty('--group-fill', describeGroupShare(category.indices.size) + '%');
         groupElement.appendChild(createCategoryButton(category, 'category-group-button'));
 
         const buttonRow = document.createElement('div');
@@ -153,8 +155,9 @@ function renderWordCategories() {
     }
 }
 
-function describeGroupShare(groupSize) {
-    return (100 * groupSize / wordlist.length).toFixed(2);
+function describeCategoryShare(categorySize) {
+    const share = 100 * categorySize / largestCategorySize;
+    return Math.min(100, share).toFixed(2);
 }
 
 function createCategoryButton(category, extraClassName = '') {
@@ -165,6 +168,7 @@ function createCategoryButton(category, extraClassName = '') {
     button.title = category.name;
     button.dataset.categoryId = category.id;
     button.dataset.state = 'all';
+    button.style.setProperty('--size', describeCategoryShare(category.indices.size) + '%');
     button.addEventListener('click', () => addCategoryWords(category));
     button.addEventListener('contextmenu', (event) => {
         event.preventDefault();

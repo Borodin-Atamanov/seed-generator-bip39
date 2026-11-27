@@ -429,19 +429,25 @@ test('the last two groups list the letters that really start and end words, in a
     assert.ok(wordsAfterEndingRemoval.every((word) => word[word.length - 1] !== 'g'));
 });
 
-test('every group carries a top scale showing its share of the whole word list', async () => {
+test('every category button carries a top scale of its size, filled from the right edge', async () => {
     const { elements } = await runPage('1', '', false);
-    const groups = elements.get('word-categories').children;
+    const buttons = collectCategoryButtons(elements.get('word-categories'));
 
-    assert.equal(groups[0].style.values['--group-fill'], '100.00%');
-    const animalsGroup = wordCategoryTree.find((group) => group.id === 'animals');
-    const animalWordCount = new Set(animalsGroup.children.flatMap((child) => child.words)).size;
-    assert.equal(groups[1].style.values['--group-fill'], (100 * animalWordCount / 2048).toFixed(2) + '%');
-    for (const group of groups) {
-        assert.match(group.style.values['--group-fill'], /^\d+\.\d\d%$/, group.children[0].textContent);
+    for (const button of buttons) {
+        assert.match(button.style.values['--size'], /^\d+\.\d\d%$/, button.textContent);
     }
-    assert.match(page, /\.category-group::after \{[^}]*right: 0;/, 'the fill must grow from the right edge');
-    assert.match(page, /\.category-group::before \{[^}]*left: 0;[^}]*right: 0;/, 'the track must span the row');
+    assert.match(page, /\.category-button::before \{[^}]*top: 0;[^}]*right: 0;/, 'the scale must sit at the top');
+    assert.match(page, /calc\(100% - var\(--size, 0%\)\)/, 'the dark part must grow from the right edge');
+
+    const sizeByButton = new Map(buttons.map((button) => [button.dataset.categoryId, button.style.values['--size']]));
+    const threeLetterShare = Number(sizeByButton.get('word-length-3').replace('%', ''));
+    const eightLetterShare = Number(sizeByButton.get('word-length-8').replace('%', ''));
+    assert.ok(threeLetterShare > 0, 'a small category must still show a scale');
+    assert.ok(eightLetterShare > 0);
+    assert.equal(sizeByButton.get('word-length'), '100.00%', 'a group bigger than the biggest subcategory caps the scale');
+    const shares = buttons.map((button) => Number(button.style.values['--size'].replace('%', '')));
+    assert.equal(Math.max(...shares), 100, 'the biggest subcategory fills the whole scale');
+    assert.ok(shares.every((share) => share <= 100), 'no scale may pass its track');
 });
 
 test('every group holds its own button on one row and its subcategory buttons in a row below', async () => {
