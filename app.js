@@ -118,10 +118,10 @@ function createCategoryButton(category, extraClassName = '') {
     button.title = category.name;
     button.dataset.categoryId = category.id;
     button.dataset.state = 'all';
-    button.addEventListener('click', () => removeCategoryWords(category));
+    button.addEventListener('click', () => addCategoryWords(category));
     button.addEventListener('contextmenu', (event) => {
         event.preventDefault();
-        addCategoryWords(category);
+        removeCategoryWords(category);
     });
     categoryButtons.push({ button, category, baseClassName: button.className });
     return button;

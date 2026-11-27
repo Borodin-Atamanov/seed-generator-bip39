@@ -22,7 +22,9 @@ first eleven words of each half from the set and derives the twelfth word from t
 rules, retrying until that word belongs to the set.
 
 Below the words field there are category buttons, grouped in two levels: a group button and the
-buttons inside it. There are 23 groups and 162 buttons in total. The first group is word length,
+buttons inside it. Every group starts a new row with its own button, and the buttons of its
+subcategories follow it on the same row, wrapping only when the row runs out of width. There are
+23 groups and 162 buttons in total. The first group is word length,
 its button is named "Word length" and the buttons inside it are the numbers 3 to 8, the lengths
 that exist in the English BIP39 list. The other 22 groups are the meaning categories of the
 BIP39 vocabulary, taken from `word-categories.js`: Animals, Nature and Environment, Food and
@@ -34,9 +36,9 @@ subcategory, and a word with several meanings belongs to several.
 
 Each button, the group one included, shows one of three states: the list has no word of that
 category (light), it has some but not all of them (grey), or it has all of them (dark). A left
-click removes every word of that category from the list. A right click adds the missing words of
-that category, and the browser context menu does not open on buttons. A group button covers every
-word of the group, so it removes or adds all of its subcategories at once. The state is
+click adds the missing words of that category. A right click removes every word of that category
+from the list, and the browser context menu does not open on buttons. A group button covers every
+word of the group, so it adds or removes all of its subcategories at once. The state is
 recomputed after any edit of the words field.
 
 A category that is only partly in the list also draws a thin line along the bottom edge of its
